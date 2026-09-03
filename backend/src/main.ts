@@ -35,7 +35,15 @@ async function bootstrap() {
       .setTitle("Mini Kanban API")
       .setDescription("REST API for the Mini Kanban Board application")
       .setVersion("1.0")
-      .addBearerAuth()
+      .addBearerAuth(
+        {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+          in: "header",
+        },
+        "jwt",
+      )
       .build();
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup("api/docs", app, document);

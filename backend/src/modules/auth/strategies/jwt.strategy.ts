@@ -10,15 +10,16 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     private config: ConfigService,
     private authService: AuthService,
   ) {
+    const secret = config.get<string>("JWT_SECRET") || "dev-secret";
+
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKeyProvider: async () => config.get<string>("JWT_SECRET"),
+      secretOrKey: secret,
     });
   }
 
   async validate(payload: any) {
-    console.log(payload);
     const user = await this.authService.findUserById(payload.sub);
     if (!user) throw new UnauthorizedException();
     return { userId: payload.sub, email: payload.email };

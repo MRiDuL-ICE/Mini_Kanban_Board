@@ -8,6 +8,8 @@ import {
   Body,
   UseGuards,
   Req,
+  HttpCode,
+  HttpStatus,
 } from "@nestjs/common";
 import { BoardsService } from "./boards.service";
 import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
@@ -17,10 +19,16 @@ import {
   CreateColumnDto,
   UpdateColumnDto,
 } from "./dto/board.dto";
-import { ApiTags } from "@nestjs/swagger";
+import {
+  ApiBearerAuth,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from "@nestjs/swagger";
 
 @ApiTags("Boards")
 @Controller("boards")
+@ApiBearerAuth("jwt")
 @UseGuards(JwtAuthGuard)
 export class BoardsController {
   constructor(private boardsService: BoardsService) {}
@@ -35,11 +43,18 @@ export class BoardsController {
   }
 
   @Post()
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: "Create board" })
+  @ApiOkResponse({ description: "Board created" })
   createBoard(@Body() dto: CreateBoardDto, @Req() req: any) {
+    console.log(req.user);
     return this.boardsService.createBoard(dto.title, req.user.userId);
   }
 
   @Post(":id/members")
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: "Add member to board" })
+  @ApiOkResponse({ description: "Member added" })
   addMember(
     @Param("id") id: string,
     @Body() dto: AddMemberDto,
@@ -54,6 +69,9 @@ export class BoardsController {
   }
 
   @Delete(":id/members/:userId")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: "Remove member from board" })
+  @ApiOkResponse({ description: "Member removed" })
   removeMember(
     @Param("id") id: string,
     @Param("userId") userId: string,
@@ -63,6 +81,9 @@ export class BoardsController {
   }
 
   @Post(":id/columns")
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: "Create column" })
+  @ApiOkResponse({ description: "Column created" })
   createColumn(
     @Param("id") id: string,
     @Body() dto: CreateColumnDto,
@@ -72,6 +93,9 @@ export class BoardsController {
   }
 
   @Patch("columns/:columnId")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Update column" })
+  @ApiOkResponse({ description: "Column updated" })
   updateColumn(
     @Param("columnId") columnId: string,
     @Body() dto: UpdateColumnDto,
@@ -85,6 +109,9 @@ export class BoardsController {
   }
 
   @Delete("columns/:columnId")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: "Delete column" })
+  @ApiOkResponse({ description: "Column deleted" })
   deleteColumn(@Param("columnId") columnId: string, @Req() req: any) {
     return this.boardsService.deleteColumn(columnId, req.user.userId);
   }
