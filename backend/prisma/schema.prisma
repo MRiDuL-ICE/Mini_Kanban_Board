@@ -1,0 +1,104 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider  = "postgresql"
+    url       = env("DATABASE_URL")
+    directUrl = env("DIRECT_URL")
+}
+
+// Users table – auth is still done in your NestJS app with JWT.
+// You can either:
+// - Use Supabase Auth and map their user id here, or
+// - Store your own users and ignore Supabase Auth.
+model User {
+    id           Int    @id @default(autoincrement())
+    email        String @unique
+    passwordHash String
+
+    ownedBoards  Board[]       @relation("BoardOwner")
+    memberships  BoardMember[]
+    createdTasks Task[]        @relation("TaskCreator")
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    // If you later want to link Supabase Auth users:
+    // supabaseUserId String? @unique // auth.uid() from Supabase
+}
+
+model Board {
+    id      Int    @id @default(autoincrement())
+    title   String
+    ownerId Int
+
+    owner   User          @relation("BoardOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+    members BoardMember[]
+    columns BoardColumn[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([ownerId])
+}
+
+model BoardMember {
+    id      Int       @id @default(autoincrement())
+    boardId Int
+    userId  Int
+    role    BoardRole @default(VIEWER)
+
+    board Board @relation(fields: [boardId], references: [id], onDelete: Cascade)
+    user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    joinedAt DateTime @default(now())
+
+    // One membership per (board, user)
+    @@unique([boardId, userId])
+    @@index([userId])
+    @@index([boardId, role])
+}
+
+model BoardColumn {
+    id       Int    @id @default(autoincrement())
+    boardId  Int
+    title    String
+    position Int    @default(0)
+
+    board Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
+    tasks Task[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    // Optional: ensure unique position per board
+    @@unique([boardId, position])
+    @@index([boardId])
+}
+
+model Task {
+    id          Int     @id @default(autoincrement())
+    columnId    Int
+    title       String
+    description String?
+
+    column    BoardColumn @relation(fields: [columnId], references: [id], onDelete: Cascade)
+    creator   User?       @relation("TaskCreator", fields: [creatorId], references: [id], onDelete: SetNull)
+    creatorId Int?
+
+    position Int @default(0)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@unique([columnId, position])
+    @@index([columnId])
+    @@index([creatorId])
+}
+
+enum BoardRole {
+    OWNER
+    EDITOR
+    VIEWER
+}
