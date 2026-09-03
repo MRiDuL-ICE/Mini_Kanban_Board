@@ -4,31 +4,47 @@ const config: Config = {
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     extend: {
       colors: {
-        // Design system — slate base, violet accent
+        // Deep Space Blue design system
         surface: {
-          0: "#0f1117", // page background
-          1: "#161b27", // card
-          2: "#1e2535", // elevated card / column
-          3: "#252d42", // hover state
+          0: "var(--surface-0)", // page background
+          1: "var(--surface-1)", // card
+          2: "var(--surface-2)", // elevated card / column
+          3: "var(--surface-3)", // hover state
         },
         border: {
-          DEFAULT: "#2a3349",
-          strong: "#3a4566",
-        },
-        violet: {
-          400: "#a78bfa",
-          500: "#8b5cf6",
-          600: "#7c3aed",
+          DEFAULT: "var(--border)",
+          strong: "var(--border-strong)",
         },
         text: {
-          primary: "#e8eaf0",
-          secondary: "#9aa3b8",
-          muted: "#5c6680",
+          primary: "var(--text-primary)",
+          secondary: "var(--text-secondary)",
+          muted: "var(--text-muted)",
+        },
+        accent: {
+          DEFAULT: "var(--accent)",
+          hover: "var(--accent-hover)",
+          active: "var(--accent-active)",
+        },
+
+        // Also expose raw Deep Space Blue scale if you want direct usage
+        "deep-space-blue": {
+          50: "var(--color-deep-space-blue-50)",
+          100: "var(--color-deep-space-blue-100)",
+          200: "var(--color-deep-space-blue-200)",
+          300: "var(--color-deep-space-blue-300)",
+          400: "var(--color-deep-space-blue-400)",
+          500: "var(--color-deep-space-blue-500)",
+          600: "var(--color-deep-space-blue-600)",
+          700: "var(--color-deep-space-blue-700)",
+          800: "var(--color-deep-space-blue-800)",
+          900: "var(--color-deep-space-blue-900)",
+          950: "var(--color-deep-space-blue-950)",
         },
       },
       fontFamily: {
@@ -41,8 +57,8 @@ const config: Config = {
         xl: "16px",
       },
       boxShadow: {
-        card: "0 1px 3px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3)",
-        elevated: "0 4px 16px rgba(0,0,0,0.5)",
+        card: "0 1px 3px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.4)",
+        elevated: "0 4px 16px rgba(0,0,0,0.6)",
       },
       animation: {
         "fade-in": "fadeIn 150ms ease-out",
