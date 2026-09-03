@@ -8,14 +8,17 @@ import {
 import { AuthService } from "./auth.service";
 import { RegisterDto } from "./dto/register.dto";
 import { LoginDto } from "./dto/login.dto";
-import { Public } from "../common/decorators/public.decorator";
+import { Public } from "../../common/decorators/public.decorator";
+import { RefreshDto } from "./dto/refresh.dto";
+import { LogoutDto } from "./dto/logout.dto";
 
-@ApiTags("auth")
+@ApiTags("Auth")
 @Controller("auth")
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Public()
+  @HttpCode(HttpStatus.CREATED)
   @Post("register")
   @ApiOperation({ summary: "Register a new user" })
   @ApiCreatedResponse({ description: "Returns a signed JWT access token" })
@@ -30,5 +33,22 @@ export class AuthController {
   @ApiOkResponse({ description: "Returns a signed JWT access token" })
   login(@Body() dto: LoginDto) {
     return this.authService.login(dto);
+  }
+
+  @Public()
+  @Post("refresh")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Refresh access token" })
+  @ApiOkResponse({ description: "Returns a signed JWT access token" })
+  refresh(@Body() dto: RefreshDto) {
+    return this.authService.refresh(dto.refreshToken);
+  }
+
+  @Public()
+  @Post("logout")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Logout user" })
+  logout(@Body() dto: LogoutDto) {
+    return this.authService.logout(dto.refreshToken);
   }
 }

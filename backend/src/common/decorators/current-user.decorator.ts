@@ -1,5 +1,5 @@
+import { JwtPayload } from "@/modules/auth/interfaces/jwt-payload.interface";
 import { createParamDecorator, ExecutionContext } from "@nestjs/common";
-import { JwtPayload } from "../../auth/interfaces/jwt-payload.interface";
 
 /**
  * Extracts the authenticated user's JWT payload from the request object.
