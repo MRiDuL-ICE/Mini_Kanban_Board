@@ -10,6 +10,7 @@ import {
   Req,
   HttpCode,
   HttpStatus,
+  Query,
 } from "@nestjs/common";
 import { BoardsService } from "./boards.service";
 import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
@@ -25,7 +26,11 @@ import {
   ApiOperation,
   ApiTags,
 } from "@nestjs/swagger";
+import { Public } from "@/common/decorators/public.decorator";
+import { BoardPermissionGuard } from "@/common/guards/board-permission.guard";
+import { RequireBoardRole } from "@/common/decorators/require-board-role.decorator";
 
+@UseGuards(BoardPermissionGuard)
 @ApiTags("Boards")
 @Controller("boards")
 @ApiBearerAuth("jwt")
@@ -33,7 +38,19 @@ import {
 export class BoardsController {
   constructor(private boardsService: BoardsService) {}
 
+  @Get()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "List boards" })
+  @ApiOkResponse({ description: "Boards found" })
+  listBoards(@Req() req: any) {
+    const userId = req.user.userId;
+    return this.boardsService.listBoards(userId);
+  }
+
   @Get(":id")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Get board by id" })
+  @ApiOkResponse({ description: "Board found" })
   async getBoard(@Param("id") id: string, @Req() req: any) {
     const { board, role } = await this.boardsService.getBoardWithAccess(
       id,
@@ -42,15 +59,16 @@ export class BoardsController {
     return { board, role };
   }
 
+  @RequireBoardRole("OWNER")
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: "Create board" })
   @ApiOkResponse({ description: "Board created" })
   createBoard(@Body() dto: CreateBoardDto, @Req() req: any) {
-    console.log(req.user);
     return this.boardsService.createBoard(dto.title, req.user.userId);
   }
 
+  @RequireBoardRole("OWNER")
   @Post(":id/members")
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: "Add member to board" })
@@ -68,6 +86,16 @@ export class BoardsController {
     );
   }
 
+  @RequireBoardRole("OWNER")
+  @Get("member/by-email")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Get user by email" })
+  @ApiOkResponse({ description: "Returns a user" })
+  async getByEmail(@Query("email") email: string) {
+    return this.boardsService.findByEmail(email);
+  }
+
+  @RequireBoardRole("OWNER")
   @Delete(":id/members/:userId")
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: "Remove member from board" })
@@ -80,6 +108,7 @@ export class BoardsController {
     return this.boardsService.removeMember(id, userId, req.user.userId);
   }
 
+  @RequireBoardRole("EDITOR")
   @Post(":id/columns")
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: "Create column" })
@@ -92,6 +121,7 @@ export class BoardsController {
     return this.boardsService.createColumn(id, dto.title, req.user.userId);
   }
 
+  @RequireBoardRole("EDITOR")
   @Patch("columns/:columnId")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Update column" })
@@ -108,6 +138,7 @@ export class BoardsController {
     );
   }
 
+  @RequireBoardRole("EDITOR")
   @Delete("columns/:columnId")
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: "Delete column" })

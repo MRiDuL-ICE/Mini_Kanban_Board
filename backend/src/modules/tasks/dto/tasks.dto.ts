@@ -1,7 +1,11 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsString } from "class-validator";
+import { IsNumber, IsOptional, IsString } from "class-validator";
 
 export class CreateTaskDto {
+  @IsString()
+  @ApiProperty({ example: "column_id" })
+  columnId!: string;
+
   @IsString()
   @ApiProperty({ example: "title" })
   title!: string;
@@ -24,6 +28,7 @@ export class UpdateTaskDto {
   @ApiProperty({ example: "description" })
   description?: string;
 
+  @IsOptional()
   @IsString()
   @ApiProperty({ example: "user_id" })
   assigneeId?: string;
@@ -35,6 +40,6 @@ export class MoveTaskDto {
   columnId!: string;
 
   @ApiProperty({ example: 0 })
-  @IsString()
+  @IsNumber()
   position!: number;
 }

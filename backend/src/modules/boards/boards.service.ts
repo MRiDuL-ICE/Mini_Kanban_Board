@@ -11,6 +11,28 @@ type Role = "OWNER" | "EDITOR" | "VIEWER";
 export class BoardsService {
   constructor(private prisma: PrismaService) {}
 
+  async listBoards(userId: string) {
+    const boards = await this.prisma.board.findMany({
+      where: {
+        OR: [{ ownerId: userId }, { members: { some: { userId } } }],
+      },
+      include: {
+        owner: { select: { id: true, email: true, name: true } },
+        members: true,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return boards.map((board) => ({
+      ...board,
+      role:
+        board.ownerId === userId
+          ? "OWNER"
+          : (board.members.find((member) => member.userId === userId)?.role ??
+            null),
+    }));
+  }
+
   async getBoardWithAccess(boardId: string, userId: string) {
     const board = await this.prisma.board.findUnique({
       where: { id: boardId },
@@ -21,10 +43,17 @@ export class BoardsService {
             tasks: { orderBy: { position: "asc" } },
           },
         },
-        members: true,
+        members: {
+          select: {
+            userId: true,
+            role: true,
+            user: { select: { email: true, name: true } },
+          },
+        },
         owner: { select: { id: true, email: true, name: true } },
       },
     });
+
     if (!board) throw new NotFoundException("Board not found");
     const role = await this.resolveRole(board, userId);
     if (!role) throw new ForbiddenException("Access denied");
@@ -63,6 +92,19 @@ export class BoardsService {
       create: { boardId, userId, role },
       update: { role },
     });
+  }
+
+  async findByEmail(email: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+      select: { id: true, email: true, name: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+
+    return user;
   }
 
   async removeMember(boardId: string, userId: string, requesterId: string) {

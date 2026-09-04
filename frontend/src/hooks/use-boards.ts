@@ -1,11 +1,16 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import type { Board } from "@/types/domain";
+import type {
+  Board,
+  BoardListItem,
+  BoardResponse,
+  Column,
+} from "@/types/domain";
 
 export function useBoards() {
-  const { data, isLoading, error } = useQuery<Board[]>({
+  const { data, isLoading, error } = useQuery<BoardListItem[]>({
     queryKey: ["boards"],
-    queryFn: () => api<Board[]>("/boards"),
+    queryFn: () => api<BoardListItem[]>("/boards"),
   });
 
   return {
@@ -16,14 +21,15 @@ export function useBoards() {
 }
 
 export function useBoard(boardId: string) {
-  const { data, isLoading, error } = useQuery<Board>({
+  const { data, isLoading, error } = useQuery<BoardResponse>({
     queryKey: ["boards", boardId],
-    queryFn: () => api<Board>(`/boards/${boardId}`),
+    queryFn: () => api<BoardResponse>(`/boards/${boardId}`),
     enabled: !!boardId,
   });
 
   return {
-    board: data || null,
+    board: data?.board || null,
+    role: data?.role || null,
     loading: isLoading,
     error,
   };
@@ -39,6 +45,20 @@ export function useCreateBoard() {
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["boards"] });
+    },
+  });
+}
+
+export function useCreateColumn() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ boardId, title }: { boardId: string; title: string }) =>
+      api<Column>(`/boards/${boardId}/columns`, {
+        method: "POST",
+        body: JSON.stringify({ title }),
+      }),
+    onSuccess: (_, { boardId }) => {
+      qc.invalidateQueries({ queryKey: ["boards", boardId] });
     },
   });
 }

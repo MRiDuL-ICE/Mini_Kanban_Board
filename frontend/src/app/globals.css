@@ -2,100 +2,170 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-}
 
 @layer base {
     :root {
-        color-scheme: dark;
-
-        /* Deep Space Blue palette */
-        --color-deep-space-blue-50: #e7f4fd;
-        --color-deep-space-blue-100: #d0e8fb;
-        --color-deep-space-blue-200: #a1d2f7;
-        --color-deep-space-blue-300: #71bbf4;
-        --color-deep-space-blue-400: #42a5f0;
-        --color-deep-space-blue-500: #138eec;
-        --color-deep-space-blue-600: #0f72bd;
-        --color-deep-space-blue-700: #0b558e;
-        --color-deep-space-blue-800: #08395e;
-        --color-deep-space-blue-900: #041c2f;
-        --color-deep-space-blue-950: #031421;
-
-        /* Map design tokens to palette */
-        --surface-0: var(--color-deep-space-blue-950);
-        --surface-1: var(--color-deep-space-blue-900);
-        --surface-2: var(--color-deep-space-blue-800);
-        --surface-3: var(--color-deep-space-blue-700);
-
-        --border: var(--color-deep-space-blue-800);
-        --border-strong: var(--color-deep-space-blue-600);
-
-        --text-primary: var(--color-deep-space-blue-50);
-        --text-secondary: var(--color-deep-space-blue-200);
-        --text-muted: var(--color-deep-space-blue-400);
-
-        --accent: var(--color-deep-space-blue-500);
-        --accent-hover: var(--color-deep-space-blue-400);
-        --accent-active: var(--color-deep-space-blue-600);
+        color-scheme: light;
+        --background: 210 33% 98%;
+        --foreground: 222 32% 14%;
+        --card: 0 0% 100%;
+        --card-foreground: 222 32% 14%;
+        --primary: 222 32% 14%;
+        --primary-foreground: 0 0% 100%;
+        --muted: 214 24% 93%;
+        --muted-foreground: 215 14% 45%;
+        --border: #0a497a3d;
+        --input: 214 22% 82%;
+        --ring: 221 83% 53%;
+        --surface-0: #ffffff;
+        --surface-1: #ffffff;
+        --surface-2: #eef2f7;
+        --text-primary: #182235;
+        --text-secondary: #536176;
+        --text-muted: #8793a6;
+        --color-primary: #1c2b45;
+        --color-primary-hover: #2d4772;
+        --color-primary-active: #101a2c;
+        --accent: #2563eb;
+        --card-foreground: 0 0% 3.9%;
     }
 
     * {
         box-sizing: border-box;
     }
 
+    html {
+        background: var(--surface-0);
+    }
+
     body {
-        @apply bg-surface-0 text-text-primary font-sans antialiased;
+        background-color: hsl(var(--background));
+        color: hsl(var(--foreground));
+
+        @apply font-sans antialiased;
         min-height: 100dvh;
     }
 
-    /* Custom scrollbar — subtle on dark bg */
-    ::-webkit-scrollbar {
-        width: 6px;
-        height: 6px;
+    button,
+    input,
+    textarea {
+        font: inherit;
     }
 
-    ::-webkit-scrollbar-track {
-        background: transparent;
-    }
-
-    ::-webkit-scrollbar-thumb {
-        @apply bg-border rounded-full;
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-        @apply bg-border-strong;
+    ::selection {
+        background: #dbeafe;
+        color: #1e3a8a;
     }
 }
 
 @layer components {
-
-    /* Reusable button variants */
     .btn {
-        @apply inline-flex items-center justify-center gap-2 rounded font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-0 disabled:opacity-50 disabled:cursor-not-allowed;
+        display: inline-flex;
+        min-height: 2.5rem;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        border-radius: 0.25rem;
+        padding-inline: 1rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        transition: all 150ms;
+    }
+
+    .btn:focus-visible {
+        outline: 2px solid hsl(var(--ring));
+        outline-offset: 2px;
+    }
+
+    .btn:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
     }
 
     .btn-primary {
-        @apply btn bg-accent text-white hover:bg-accent-hover active:bg-accent-active px-4 py-2 text-sm;
+        display: inline-flex;
+        min-height: 2.5rem;
+        align-items: center;
+        justify-content: center;
+        gap: 0.2rem;
+        border-radius: 0.25rem;
+        background: var(--color-primary);
+        padding-inline: 0.4rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: white;
+        box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+        transition: all 150ms;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+        background: var(--color-primary-hover);
+    }
+
+    .btn-primary:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
     }
 
     .btn-ghost {
-        @apply btn text-text-secondary hover:text-text-primary hover:bg-surface-2 px-3 py-1.5 text-sm;
+        display: inline-flex;
+        min-height: 2.5rem;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        border-radius: 0.25rem;
+        padding-inline: 1rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        border: 1px solid var(--border);
+        color: var(--text-secondary);
+        transition: background 150ms, color 150ms;
     }
 
-    .btn-danger {
-        /* Keep red but tuned for dark theme */
-        @apply btn bg-red-700 text-white hover:bg-red-600 px-4 py-2 text-sm;
+    .btn-ghost:hover {
+        background: var(--surface-2);
+        color: var(--text-primary);
     }
 
-    /* Form inputs */
     .input {
-        @apply w-full rounded bg-surface-2 border border-border px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-colors duration-150;
+        min-height: 2.75rem;
+        width: 100%;
+        border-radius: 0.25rem;
+        border: 1px solid var(--border);
+        background: var(--surface-0);
+        padding-inline: 0.875rem;
+        font-size: 0.875rem;
+        color: var(--text-primary);
+        outline: none;
+        transition: border-color 150ms, box-shadow 150ms;
     }
 
-    /* Card shell */
-    .card {
-        @apply bg-surface-1 border border-border rounded-lg shadow-card;
+    .input::placeholder {
+        color: var(--text-muted);
     }
+
+    .input:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgb(37 99 235 / 0.14);
+    }
+
+    .card {
+        @apply rounded-[0.45rem] shadow-sm;
+        background-color: hsl(var(--card));
+        color: hsl(var(--card-foreground));
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+.animate-shimmer {
+    animation: shimmer 2s ease-in-out infinite;
 }

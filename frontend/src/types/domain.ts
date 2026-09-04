@@ -15,10 +15,20 @@ export type Board = {
   updatedAt: string;
 };
 
+export type BoardListItem = Board & {
+  role: "OWNER" | "EDITOR" | "VIEWER";
+};
+
+export type BoardResponse = {
+  board: Board;
+  role: "OWNER" | "EDITOR" | "VIEWER";
+};
+
 export type BoardMember = {
   id: string;
   boardId: string;
   userId: string;
+  user: User;
   role: "OWNER" | "EDITOR" | "VIEWER";
 };
 

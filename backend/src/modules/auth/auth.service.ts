@@ -2,6 +2,7 @@ import {
   Injectable,
   UnauthorizedException,
   ConflictException,
+  NotFoundException,
 } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
@@ -32,7 +33,14 @@ export class AuthService {
     const user = await this.prisma.user.create({
       data: { email: dto.email, passwordHash, name: dto.name },
     });
-    return this.signTokens(user);
+    return {
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+      },
+      tokens: await this.signTokens(user),
+    };
   }
 
   async login(dto: LoginDto) {
@@ -42,11 +50,17 @@ export class AuthService {
     if (!user) throw new UnauthorizedException("Invalid credentials");
     const ok = await bcrypt.compare(dto.password, user.passwordHash);
     if (!ok) throw new UnauthorizedException("Invalid credentials");
-    return this.signTokens(user);
+    return {
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+      },
+      tokens: await this.signTokens(user),
+    };
   }
 
   async refresh(refreshToken: string) {
-    console.log(refreshToken);
     if (!refreshToken) throw new UnauthorizedException();
     const stored = await this.prisma.refreshToken.findUnique({
       where: { token: refreshToken },

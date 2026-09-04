@@ -48,5 +48,7 @@ export async function api<T>(path: string, options?: RequestInit): Promise<T> {
     throw errBody;
   }
 
-  return res.json() as Promise<T>;
+  const text = await res.text();
+  if (!text) return null as T;
+  return JSON.parse(text) as T;
 }

@@ -1,24 +1,17 @@
-import { useEffect } from "react";
 import { useAuthStore } from "@/store/auth-store";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export function useAuth() {
-  const { user, loading, setLoading } = useAuthStore();
+  const user = useAuthStore((s) => s.user);
+  const loading = useAuthStore((s) => s.loading);
+  const hydrated = useAuthStore((s) => s.hydrated);
+  const accessToken = useAuthStore((s) => s.accessToken);
   const router = useRouter();
 
-  useEffect(() => {
-    const token =
-      typeof window !== "undefined"
-        ? localStorage.getItem("access_token")
-        : null;
-    if (token && !user) {
-      useAuthStore.getState().setUser({ id: "", email: "", name: "" });
-    }
-    setLoading(false);
-  }, []);
-
   function requireAuth() {
-    if (!loading && !user) {
+    if (!hydrated) return true;
+    if (!accessToken) {
       router.push("/login");
       return false;
     }
@@ -28,6 +21,8 @@ export function useAuth() {
   return {
     user,
     loading,
+    hydrated,
+    accessToken,
     logout: useAuthStore((s) => s.logout),
     requireAuth,
   };

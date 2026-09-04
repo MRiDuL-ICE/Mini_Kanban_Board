@@ -1,14 +1,16 @@
 import { create } from "zustand";
-import type { AuthTokens } from "@/types/api";
+import type { AuthResponse, AuthTokens } from "@/types/api";
 import type { User } from "@/types/domain";
 import { api } from "@/lib/api";
 
 type AuthState = {
-  accessToken: () => string | null;
-  refreshToken: () => string | null;
+  hydrated: boolean;
+  accessToken: string | null;
+  refreshToken: string | null;
   user: User | null;
   loading: boolean;
 
+  hydrate: () => void;
   setTokens: (tokens: AuthTokens) => void;
   clearTokens: () => void;
   setUser: (user: User | null) => void;
@@ -20,87 +22,91 @@ type AuthState = {
   refreshAccessToken: () => Promise<void>;
 };
 
-function getStored(key: "access_token" | "refresh_token"): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem(key);
-}
-
-function setStored(key: "access_token" | "refresh_token", value: string) {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(key, value);
-}
-
-function clearStored() {
-  if (typeof window === "undefined") return;
-  localStorage.removeItem("access_token");
-  localStorage.removeItem("refresh_token");
-}
-
 export const useAuthStore = create<AuthState>((set, get) => ({
-  accessToken: () => getStored("access_token"),
-  refreshToken: () => getStored("refresh_token"),
+  hydrated: false,
+  accessToken: null,
+  refreshToken: null,
   user: null,
-  loading: true,
+  loading: false,
+
+  hydrate: () => {
+    if (typeof window === "undefined") return;
+    const accessToken = localStorage.getItem("access_token");
+    const refreshToken = localStorage.getItem("refresh_token");
+    set({ accessToken, refreshToken, hydrated: true });
+  },
 
   setTokens: (tokens) => {
-    setStored("access_token", tokens.access_token);
-    setStored("refresh_token", tokens.refresh_token);
+    localStorage.setItem("access_token", tokens.access_token);
+    localStorage.setItem("refresh_token", tokens.refresh_token);
+    set({
+      accessToken: tokens.access_token,
+      refreshToken: tokens.refresh_token,
+    });
   },
 
   clearTokens: () => {
-    clearStored();
-    set({ user: null });
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    set({ accessToken: null, refreshToken: null, user: null });
   },
 
   setUser: (user) => set({ user }),
   setLoading: (loading) => set({ loading }),
 
   login: async (email, password) => {
-    const tokens = await api<AuthTokens>("/auth/login", {
+    const response = await api<AuthResponse>("/auth/login", {
       method: "POST",
       body: JSON.stringify({ email, password }),
     });
-    get().setTokens(tokens);
-    get().setUser({ id: "", email, name: "" });
+    get().setTokens(response.tokens);
+    get().setUser(response.user);
   },
 
   register: async (email, password, name) => {
-    const tokens = await api<AuthTokens>("/auth/register", {
+    const response = await api<AuthResponse>("/auth/register", {
       method: "POST",
       body: JSON.stringify({ email, password, name }),
     });
-    get().setTokens(tokens);
-    get().setUser({ id: "", email, name: name || "" });
+    get().setTokens(response.tokens);
+    get().setUser(response.user);
   },
 
   logout: () => {
-    const refresh_token = get().refreshToken();
-    if (refresh_token) {
+    const refreshToken = get().refreshToken;
+    if (refreshToken) {
       api("/auth/logout", {
         method: "POST",
-        body: JSON.stringify({ refresh_token }),
+        body: JSON.stringify({ refresh_token: refreshToken }),
       }).catch(() => {});
     }
     get().clearTokens();
   },
 
   refreshAccessToken: async () => {
-    const refresh_token = get().refreshToken();
-    if (!refresh_token) throw new Error("No refresh token");
+    const refreshToken = get().refreshToken;
+    if (!refreshToken) throw new Error("No refresh token");
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api/v1"}/auth/refresh`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refreshToken }),
+      },
+    );
 
-    const tokens = await api<AuthTokens>("/auth/refresh", {
-      method: "POST",
-      body: JSON.stringify({ refresh_token }),
-    });
+    if (!res.ok) throw new Error("Refresh failed");
+
+    const tokens: AuthTokens = await res.json();
     get().setTokens(tokens);
   },
 }));
 
+// safe to use outside components (interceptors etc.)
 export function getAuthStore() {
-  const store = useAuthStore;
   return {
-    accessToken: () => store.getState().accessToken(),
-    refreshToken: () => store.getState().refreshToken(),
-    refreshAccessToken: () => store.getState().refreshAccessToken(),
+    accessToken: () => useAuthStore.getState().accessToken,
+    refreshToken: () => useAuthStore.getState().refreshToken,
+    refreshAccessToken: () => useAuthStore.getState().refreshAccessToken(),
   };
 }

@@ -1,7 +1,6 @@
-// @ts-expect-error CSS side-effect imports are handled by Next.js.
+// @ts-expect-error CSS is handled by Next.js and has no TypeScript declarations.
 import "./globals.css";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { queryClient } from "@/lib/query-client";
+import { Providers } from "@/components/providers";
 
 export const metadata = {
   title: "Mini Kanban",
@@ -16,9 +15,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-surface-0 text-text-primary font-sans antialiased">
-        <QueryClientProvider client={queryClient}>
-          {children}
-        </QueryClientProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
