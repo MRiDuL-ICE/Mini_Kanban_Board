@@ -7,6 +7,10 @@ import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  console.log("NODE_ENV:", process.env.NODE_ENV);
+  console.log("SWAGGER_ENABLED:", process.env.SWAGGER_ENABLED);
+  console.log("FRONTEND_URL:", process.env.FRONTEND_URL);
+
   // Swagger (dev only)
   if (
     process.env.NODE_ENV !== "production" ||
