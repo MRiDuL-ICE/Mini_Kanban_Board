@@ -4,6 +4,7 @@ import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { LayoutGrid, LogOut, Menu, X } from "lucide-react";
 import { useAuthStore } from "@/store/auth-store";
+import toast from "react-hot-toast";
 
 export function Navbar() {
   const router = useRouter();
@@ -13,12 +14,13 @@ export function Navbar() {
 
   function signOut() {
     logout();
+    toast.success("Signed out");
     router.push("/login");
   }
 
   return (
     <header className="sticky top-0 z-40 px-4 pt-5 sm:px-6 lg:px-10">
-      <div className="mx-auto flex max-w-[1240px] items-center justify-between rounded-full border border-border/30 bg-[var(--surface-0)] px-4 py-2 shadow-sm backdrop-blur-sm min-h-[62px]">
+      <div className="mx-auto flex max-w-[1240px] items-center justify-between rounded-full border border-border/30 bg-card px-4 py-2 shadow-sm backdrop-blur-sm min-h-[62px]">
         <button
           onClick={() => router.push("/boards")}
           className="flex min-w-0 items-center gap-3"

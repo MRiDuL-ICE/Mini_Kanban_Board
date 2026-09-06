@@ -2,6 +2,7 @@
 
 import { useAuthStore } from "@/store/auth-store";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "react-hot-toast";
 import { ReactNode, useEffect } from "react";
 
 const queryClient = new QueryClient({
@@ -23,6 +24,18 @@ export function Providers({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      {children}
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 3500,
+          className:
+            "!rounded-xl !border !border-border !bg-card !text-foreground !shadow-lg",
+          success: { iconTheme: { primary: "#16a34a", secondary: "white" } },
+          error: { iconTheme: { primary: "#dc2626", secondary: "white" } },
+        }}
+      />
+    </QueryClientProvider>
   );
 }

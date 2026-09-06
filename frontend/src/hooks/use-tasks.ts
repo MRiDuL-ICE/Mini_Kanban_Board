@@ -1,5 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { getErrorMessage } from "@/lib/api";
+import toast from "react-hot-toast";
 import type { BoardResponse, Task } from "@/types/domain";
 
 type MoveTaskVars = {
@@ -10,6 +12,7 @@ type MoveTaskVars = {
 };
 
 type CreateTaskVars = {
+  boardId: string;
   columnId: string;
   title: string;
   description?: string;
@@ -99,11 +102,13 @@ export function useMoveTask() {
         queryKey: ["boards", vars.boardId],
         exact: true,
       });
+      toast.success("Task moved");
     },
-    onError: (_, __, context) => {
+    onError: (error, vars, context) => {
       if (context?.previous) {
-        qc.setQueryData(["boards", context.previous.boardId], context.previous);
+        qc.setQueryData(["boards", vars.boardId], context.previous);
       }
+      toast.error(getErrorMessage(error, "Failed to move task"));
     },
   });
 }
@@ -113,19 +118,24 @@ export function useCreateTask() {
 
   return useMutation({
     mutationFn: ({
+      boardId,
       columnId,
       title,
       description,
       assigneeId,
     }: CreateTaskVars) => {
       // console.log({ columnId, title, description, assigneeId });
-      return api<Task>("/tasks", {
+      return api<Task>(`/tasks?boardId=${encodeURIComponent(boardId)}`, {
         method: "POST",
         body: JSON.stringify({ columnId, title, description, assigneeId }),
       });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["boards"] });
+      toast.success("Task created");
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error, "Failed to create task"));
     },
   });
 }
@@ -148,6 +158,10 @@ export function useUpdateTask() {
       if (boardId) {
         qc.refetchQueries({ queryKey: ["boards", boardId], exact: true });
       }
+      toast.success("Task updated");
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error, "Failed to update task"));
     },
   });
 }
@@ -164,6 +178,10 @@ export function useDeleteTask() {
       if (boardId) {
         qc.refetchQueries({ queryKey: ["boards", boardId], exact: true });
       }
+      toast.success("Task deleted");
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error, "Failed to delete task"));
     },
   });
 }

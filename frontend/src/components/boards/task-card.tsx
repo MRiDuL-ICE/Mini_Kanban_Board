@@ -8,7 +8,7 @@ import { useState } from "react";
 interface Task {
   id: string;
   title: string;
-  description?: string;
+  description?: string | null;
   assigneeId?: string;
   createdAt?: string;
 }

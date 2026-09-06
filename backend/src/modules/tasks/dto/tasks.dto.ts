@@ -14,6 +14,7 @@ export class CreateTaskDto {
   @ApiProperty({ example: "description" })
   description?: string;
 
+  @IsOptional()
   @IsString()
   @ApiProperty({ example: "user_id" })
   assigneeId?: string;

@@ -1,5 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { getErrorMessage } from "@/lib/api";
+import toast from "react-hot-toast";
 import type {
   Board,
   BoardListItem,
@@ -45,6 +47,10 @@ export function useCreateBoard() {
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["boards"] });
+      toast.success("Board created");
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error, "Failed to create board"));
     },
   });
 }
@@ -59,6 +65,10 @@ export function useCreateColumn() {
       }),
     onSuccess: (_, { boardId }) => {
       qc.invalidateQueries({ queryKey: ["boards", boardId] });
+      toast.success("Column created");
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error, "Failed to create column"));
     },
   });
 }

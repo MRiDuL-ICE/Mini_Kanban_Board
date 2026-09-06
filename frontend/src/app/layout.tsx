@@ -1,4 +1,3 @@
-// @ts-expect-error CSS is handled by Next.js and has no TypeScript declarations.
 import "./globals.css";
 import { Providers } from "@/components/providers";
 

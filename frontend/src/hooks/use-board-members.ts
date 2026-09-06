@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { getErrorMessage } from "@/lib/api";
+import toast from "react-hot-toast";
 import type { BoardMember, BoardResponse, User } from "@/types/domain";
 
 type AddMemberVars = {
@@ -18,32 +20,41 @@ export function useAddMember() {
 
   return useMutation({
     mutationFn: ({ boardId, userId, role }: AddMemberVars) =>
-      api<BoardMember>(`/boards/${boardId}/members`, {
-        method: "POST",
-        body: JSON.stringify({ userId, role }),
-      }),
+      api<BoardMember>(
+        `/boards/members?boardId=${encodeURIComponent(boardId)}`,
+        {
+          method: "POST",
+          body: JSON.stringify({ userId, role }),
+        },
+      ),
     onSuccess: (_, { boardId }) => {
       qc.refetchQueries({ queryKey: ["boards", boardId], exact: true });
+      toast.success("Member added");
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error, "Failed to add member"));
     },
   });
 }
 
-export function useUserByEmail(email: string | null) {
+export function useUserByEmail(
+  email: string | null,
+  boardId: string | undefined,
+) {
   return useQuery<User | null>({
-    queryKey: ["user-by-email", email],
+    queryKey: ["user-by-email", boardId, email],
     queryFn: async () => {
-      if (!email) return null;
+      if (!email || !boardId) return null;
 
       try {
-        const res = await api<User | null>(
-          `/boards/member/by-email?email=${encodeURIComponent(email)}`,
+        return await api<User | null>(
+          `/boards/member/by-email?boardId=${encodeURIComponent(boardId)}&email=${encodeURIComponent(email)}`,
         );
-        return res;
-      } catch (e) {
+      } catch {
         return null;
       }
     },
-    enabled: !!email,
+    enabled: Boolean(email && boardId),
     retry: false,
   });
 }
@@ -67,6 +78,10 @@ export function useRemoveMember() {
           },
         };
       });
+      toast.success("Member removed");
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error, "Failed to remove member"));
     },
   });
 }

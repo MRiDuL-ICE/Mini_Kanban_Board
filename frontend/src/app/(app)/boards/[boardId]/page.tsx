@@ -38,13 +38,14 @@ import {
 } from "@/components/boards/board-modals";
 import { MembersModal } from "@/components/boards/members-modal";
 import { PageSkeleton } from "@/components/layout/navbar";
+import toast from "react-hot-toast";
 
 type Role = "OWNER" | "EDITOR" | "VIEWER";
 
 interface Task {
   id: string;
   title: string;
-  description?: string;
+  description?: string | null;
   assigneeId?: string;
   createdAt?: string;
 }
@@ -123,6 +124,10 @@ export default function BoardPage() {
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
 
   useEffect(() => {
+    if (error) toast.error("Failed to load board");
+  }, [error]);
+
+  useEffect(() => {
     if (!authLoading) requireAuth();
   }, [authLoading, requireAuth]);
 
@@ -165,9 +170,7 @@ export default function BoardPage() {
       await createColumn.mutateAsync({ boardId, title: newColumnTitle.trim() });
       setNewColumnTitle("");
       setColumnModalOpen(false);
-    } catch {
-      window.alert("Failed to create column");
-    }
+    } catch {}
   }
 
   function openTaskModal(columnId: string) {
@@ -180,35 +183,35 @@ export default function BoardPage() {
   async function handleCreateTask() {
     if (!activeColumnId || !newTaskTitle.trim()) return;
     try {
+      // console.log("boardId in create task", boardId, user?.id);
       await createTask.mutateAsync({
+        boardId,
         columnId: activeColumnId,
         title: newTaskTitle.trim(),
         description: newTaskDesc || undefined,
         assigneeId: user?.id,
       });
       setTaskModalOpen(false);
-    } catch {
-      window.alert("Failed to create task");
-    }
+    } catch {}
   }
 
   async function handleUpdateTask(taskId: string, data: Partial<Task>) {
     if (!updateTask) return;
     try {
-      await updateTask.mutateAsync({ taskId, boardId, data });
+      await updateTask.mutateAsync({
+        taskId,
+        boardId,
+        data: { ...data, description: data.description ?? undefined },
+      });
       setDetailTask((prev) => (prev ? { ...prev, ...data } : prev));
-    } catch {
-      window.alert("Failed to update task");
-    }
+    } catch {}
   }
 
   async function handleDeleteTask(taskId: string) {
     if (!deleteTask) return;
     try {
       await deleteTask.mutateAsync({ taskId, boardId });
-    } catch {
-      window.alert("Failed to delete task");
-    }
+    } catch {}
   }
 
   function onDragStart({ active }: DragStartEvent) {
@@ -282,10 +285,7 @@ export default function BoardPage() {
         position: finalLoc.index,
       },
       {
-        onError: () => {
-          setOptimisticColumns(board?.columns ?? null);
-          window.alert("Failed to move task");
-        },
+        onError: () => setOptimisticColumns(board?.columns ?? null),
       },
     );
   }
@@ -332,7 +332,7 @@ export default function BoardPage() {
                 className="btn-ghost"
                 title="Manage members"
               >
-                <Users className="size-4" /> Members
+                <Users className="size-4" /> Add Members
               </button>
             )}
             {userCanManage && (
@@ -392,7 +392,7 @@ export default function BoardPage() {
               {userCanManage && (
                 <button
                   onClick={() => setColumnModalOpen(true)}
-                  className="flex h-[52px] w-[min(88vw,300px)] shrink-0 items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border/50 text-sm text-muted-foreground transition-colors hover:border-border hover:bg-card hover:text-foreground sm:w-[300px]"
+                  className="flex h-[102px] w-[min(88vw,300px)] shrink-0 items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border/50 text-sm text-muted-foreground transition-colors hover:border-border hover:bg-card hover:text-foreground sm:w-[300px]"
                 >
                   + Add column
                 </button>

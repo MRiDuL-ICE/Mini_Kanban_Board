@@ -4,6 +4,18 @@ import { getAuthStore } from "@/store/auth-store";
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api/v1";
 
+export function getErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof Error && error.message) return error.message;
+
+  if (typeof error === "object" && error !== null && "message" in error) {
+    const message = (error as { message?: unknown }).message;
+    if (Array.isArray(message)) return message.join(", ");
+    if (typeof message === "string" && message) return message;
+  }
+
+  return fallback;
+}
+
 export async function api<T>(path: string, options?: RequestInit): Promise<T> {
   const { accessToken, refreshAccessToken } = getAuthStore();
 
@@ -40,12 +52,15 @@ export async function api<T>(path: string, options?: RequestInit): Promise<T> {
 
   if (!res.ok) {
     const text = await res.text();
-    const errBody: ApiError = {
-      statusCode: res.status,
-      message: text || res.statusText,
-      error: "ApiError",
-    };
-    throw errBody;
+    let message = text || res.statusText;
+
+    try {
+      const errBody = JSON.parse(text) as ApiError;
+      if (Array.isArray(errBody.message)) message = errBody.message.join(", ");
+      else if (errBody.message) message = errBody.message;
+    } catch {}
+
+    throw new Error(message);
   }
 
   const text = await res.text();

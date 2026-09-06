@@ -10,6 +10,7 @@ import {
 } from "@/hooks/use-board-members";
 import type { Board, BoardMember } from "@/types/domain";
 import { Spinner } from "../layout/navbar";
+import toast from "react-hot-toast";
 
 export function MembersModal({
   open,
@@ -38,26 +39,26 @@ export function MembersModal({
     data: foundUser,
     isLoading: searchingUser,
     error,
-  } = useUserByEmail(emailQuery);
+  } = useUserByEmail(emailQuery, board?.id);
 
   if (!board) return null;
 
-  const isOwner = boardRole === "OWNER" || board.ownerId === currentUserId;
+  const currentBoard = board;
+  const isOwner =
+    boardRole === "OWNER" || currentBoard.ownerId === currentUserId;
   async function handleAdd() {
     if (!foundUser) {
-      alert("User not found");
+      toast.error("No user found with that email");
       return;
     }
     try {
       await addMember.mutateAsync({
-        boardId: board.id,
+        boardId: currentBoard.id,
         userId: foundUser.id,
         role,
       });
       setEmailInput("");
-    } catch {
-      alert("Failed to add member");
-    }
+    } catch {}
   }
 
   return (

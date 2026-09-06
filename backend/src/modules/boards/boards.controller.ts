@@ -59,7 +59,7 @@ export class BoardsController {
     return { board, role };
   }
 
-  @RequireBoardRole("OWNER")
+  // @RequireBoardRole("OWNER")
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: "Create board" })
@@ -69,12 +69,12 @@ export class BoardsController {
   }
 
   @RequireBoardRole("OWNER")
-  @Post(":id/members")
+  @Post("/members")
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: "Add member to board" })
   @ApiOkResponse({ description: "Member added" })
   addMember(
-    @Param("id") id: string,
+    @Query("boardId") id: string,
     @Body() dto: AddMemberDto,
     @Req() req: any,
   ) {
@@ -91,7 +91,10 @@ export class BoardsController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Get user by email" })
   @ApiOkResponse({ description: "Returns a user" })
-  async getByEmail(@Query("email") email: string) {
+  async getByEmail(
+    @Query("email") email: string,
+    @Query("boardId") id: string,
+  ) {
     return this.boardsService.findByEmail(email);
   }
 
