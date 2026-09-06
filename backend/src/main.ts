@@ -7,33 +7,6 @@ import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  console.log("NODE_ENV:", process.env.NODE_ENV);
-  console.log("SWAGGER_ENABLED:", process.env.SWAGGER_ENABLED);
-  console.log("FRONTEND_URL:", process.env.FRONTEND_URL);
-
-  // Swagger (dev only)
-  if (
-    process.env.NODE_ENV !== "production" ||
-    process.env.SWAGGER_ENABLED === "true"
-  ) {
-    const config = new DocumentBuilder()
-      .setTitle("Mini Kanban API")
-      .setDescription("REST API for the Mini Kanban Board application")
-      .setVersion("1.0")
-      .addBearerAuth(
-        {
-          type: "http",
-          scheme: "bearer",
-          bearerFormat: "JWT",
-          in: "header",
-        },
-        "jwt",
-      )
-      .build();
-    const document = SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup("api/docs", app, document);
-  }
-
   // Global prefix
   app.setGlobalPrefix("api", {
     exclude: ["api/docs", "api/docs-json", "api/docs/(.*)", "health"],
@@ -57,6 +30,29 @@ async function bootstrap() {
     }),
   );
   app.useGlobalFilters(new HttpExceptionFilter());
+
+  // Swagger (dev only)
+  if (
+    process.env.NODE_ENV !== "production" ||
+    process.env.SWAGGER_ENABLED === "true"
+  ) {
+    const config = new DocumentBuilder()
+      .setTitle("Mini Kanban API")
+      .setDescription("REST API for the Mini Kanban Board application")
+      .setVersion("1.0")
+      .addBearerAuth(
+        {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+          in: "header",
+        },
+        "jwt",
+      )
+      .build();
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup("api/docs", app, document);
+  }
 
   const port = process.env.BACKEND_PORT ?? 4000;
   await app.listen(port);
