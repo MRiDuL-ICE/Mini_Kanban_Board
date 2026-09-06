@@ -30,7 +30,10 @@ async function bootstrap() {
   app.useGlobalFilters(new HttpExceptionFilter());
 
   // Swagger (dev only)
-  if (process.env.NODE_ENV !== "production") {
+  if (
+    process.env.NODE_ENV !== "production" ||
+    process.env.SWAGGER_ENABLED === "true"
+  ) {
     const config = new DocumentBuilder()
       .setTitle("Mini Kanban API")
       .setDescription("REST API for the Mini Kanban Board application")
