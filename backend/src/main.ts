@@ -49,7 +49,7 @@ async function bootstrap() {
     SwaggerModule.setup("api/docs", app, document);
   }
 
-  const port = process.env.PORT ?? 4000;
+  const port = process.env.BACKEND_PORT ?? 4000;
   await app.listen(port);
   console.log(`🚀 Backend running on http://localhost:${port}/api/v1`);
   if (process.env.NODE_ENV !== "production") {
